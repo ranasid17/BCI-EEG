@@ -1,5 +1,5 @@
 # Signal-Band-Laterality
-Composition: Merge 'createArrayForPCA', 'PCAFunction', 'centroidCalculation' 
-Purpose: Run same processes from above scripts on Pts 1-10 for first and final 5 trials, constrict to respective frequency bands
-Goal: Determine change in laterality of motor cortex activity after IpsiHand use
-Output: 150x10 double arry of difference in Contralateral:Ipsilateral signal ratios from first to final 5 trials
+Scripts for signal laterality analysis
+Power band analysis uses PCA analysis to plot average change in signal laterality for ipsilateral AND contralateral hemispheres
+Signal laterality analysis uses ratio of ipsilateral:contralateral signal change across all trials to determine if effect is occurring  
+GOAL (of all files): Determine change in laterality of motor cortex activity after Ipsihand use
