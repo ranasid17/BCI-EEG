@@ -1,4 +1,4 @@
- % %%Merge 'createArrayForPCA', 'PCAFunction', 'centroidCalculation'
+% %%Merge 'createArrayForPCA', 'PCAFunction', 'centroidCalculation'
 % %%Run same processes from above scripts on Patients 1-10 for 1st 5 trials
 % %%Constrict to ALPHA BAND only
 %
@@ -6,9 +6,9 @@
 %clear all
 clc
 close all
-% %%load data
-load('D:\Sid\Data\MotorRest.mat')
-load('D:\Sid\Data\MotorTask.mat')
+% %%load data% load('D:\Sid\Data\MotorRest.mat')
+% load('D:\Sid\Data\MotorTask.mat')
+
 
 
 %% Remove empty cells from REST data
@@ -202,5 +202,4 @@ end
 %% Calc difference in early - late medians
 ratio_RestDifference_alpha = ratio_RestLast_alpha - ratio_RestFirst_alpha;
 ratio_MoveDifference_alpha = ratio_MoveLast_alpha - ratio_MoveFirst_alpha;
-
 
