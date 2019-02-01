@@ -1,0 +1,5 @@
+Merge 'createArrayForPCA', 'PCAFunction', 'centroidCalculation' 
+Run same processes from above scripts onto Pts 1-10 for first 5 trials
+Constrict results to ALPHA/BETA/DELTA/FEAT FRQ BAND only
+
+Plot: Average change in IPSILATERAL and CONTRALATERAL signal position against change in ARAT score
