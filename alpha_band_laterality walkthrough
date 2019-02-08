@@ -1,0 +1,32 @@
+alpha_band_laterality walkthrough 
+Note: This walkthrough applies to all x_band_laterality scripts
+
+Lines 14-31: 
+ - Remove empty cells from Rest + Move data
+ - Empty cell is any cell where value = 0
+ 
+Lines 34-58:
+ - Input analysis params: Lines 36-44 are constant for all x_band_scripts || Lines 47, 48 depend on wave band analyzed
+ - Lines 51, 52: wavelet span extraction 
+ - Lines 55-58: preallocate memeory, must be done outside loop to prevent overwritting previous iteration's data with 0's
+ 
+Lines 60-121: Ipsilateral analysis
+ - Lines 66, 67: Extract data from each cell of FullRaw___Mat into matrx
+ - Lines 69, 70: Add only runs with acceptable data
+ - Lines 71, 76: Constrain Cell1a/b to first and last 5 sessions with acceptable data 
+ NOTE: 4 IDENTICAL MATRICES REQUIRED BECAUSE WILL BE SPLIT INTO REST EARLY, REST LATE, MOVE EARLY, MOVE LATE
+ - Lines 79-82: Remove singleton dim of constrained data, change order of matrix pages, fft data
+ - Lines 84-102: Fill 2 arrays (First, Last) with respective data
+ - Lines 103-109: Wavelet analysis 
+ - Lines 111-121: Split First, Last matrices into Rest_First, Move_First, Rest_Last, and Move_Last
+ 
+Lines 122-186: Contralateral analysis
+ - Exact same code as Ipsilateral analysis but for contralateral data
+ 
+Lines 181-185: Divide first/last rest/move contralat activity by respoecive first/last rest/move ipsilat activity 
+
+Lines 188-191: Store each pts contralat:ipsilat ratios as one column within matrix
+
+NOTE: LINES 60-191 ARE WITHIN FOR LOOP WHICH ITERATES ONCE FOR EVERY PT, ALL CALC'D VALUES ARE STORED IN ratio_R/M_F/L_alpha
+
+lines 193-195: Calculate relative difference of change in Rest, Move signal from first to last 5 sessions
