@@ -1,8 +1,12 @@
-% Plot change in laterality v. change in ARAT
+% Goal: 
+%   1) Plot results of 'laterality_xFrqBand.m' scripts in publishable format 
+%   2) Calculate Spearman Corr Coeff and test for significance
 
-% alpha/beta/delta_band_laterality script
-% Plot alpha/beta/delta REST ratios
-% close all
+% NOTE: This plotting script is NOT compatable with 'PowerBand_Laterality_Analysis.m' (file in this directory)! 
+%       This is to prevent unauthorized access to printed figures. Please contact author directly for 
+%       laterality_xFrqBand.m scripts which are compatable with this file. 
+%       Else use provided graphing functions in 'laterality_A.m'.
+
 clc
 
 ARATchange = [12.5, 0.5, 8, 6, 2, 6, 1, 7, 13.5, 5.5]; %arat scores
