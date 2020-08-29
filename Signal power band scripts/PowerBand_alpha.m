@@ -1,12 +1,13 @@
 % Script overview:
-%   1) Find wavelet span from fwhm || Find fwhm from span using self-defined functions
+%   1) Find wavelet span from fwhm, fwhm from span using self-defined functions
 %   2) Enter for loop #1 (each loop == 1 pt) 
 %       a) Extract pt data into matrix, stratify by ipsi or contralesional recording, apply FFT
 %       b) Extract Gabor wavelet using self-defined function, then calculate power envelope with this
 %   3) Run PCA on early and late Rest and Task data for all Pts  
 %   4) Calculate mean centroids from PCA results for early and late Rest and Task data for all Pts 
 %   5) Calculate change in avg centroid location " " 
-%   Note: These are for alpha band only 
+
+% IMPORTANT: MUST DEFINE CF and FWHM (LINE 31, 32) FOR FREQUENCY BAND ATTEMPTING TO ANALYZE (DEFAULT IS DELTA BAND)
 
 %% Step 1: PCAFunction, ipsilesional electrode
 clc
@@ -22,17 +23,21 @@ ARATchange = [12.5 0.5 8 6 2 6 1 7 13.5 5.5];
 ipsi = [2,1,2,2,2,1,1,1,2,1];
 contra = [1,2,1,1,1,2,2,2,1,2];
 
-% Define center frq and wavelet width
-cf = 10;
-fwhm = 4;
+% Select center frq and wavelet width for desired band 
+bands = ['delta' 'theta' 'alpha' 'beta']; % frequency band names 
+centerFrq = [2 5 10 21]; % corresponding cfs
+fullWHM = [2 2 4 6]; % corresponding fwhms
+
+cf = centerFrq[1];
+fwhm = fullWHM[1];
 
 % Find wavelet span (in time domain)
 [span] = fwhm2span(cf, fwhm); %fwhm2span.m
 [fwhm] = span2fwhm(cf, span); %span2fwhm.m
 
 % Preallocate outside loop to previde overriding w 0s
-centDist_alpha_temp_ipsi = zeros(size(200, 20)); 
-centDist_alpha_ipsi = zeros(size(1, 10)); 
+centDist_temp_ipsi = zeros(size(200, 20)); 
+centDist_ipsi = zeros(size(1, 10)); 
 
 figure()
 for i = 1:10
@@ -59,34 +64,35 @@ for i = 1:10
     %%allocate memory
     dataFirstIpsi = zeros(2000, 300);
     dataLastIpsi = zeros(2000, 300);
-   
-    %%fill array w FFT data
-    a = 1;
-    while (a<=300)
-        for j = 1:5
-            %Fill REST sessions (FIRST + LAST), ipsi
-            dataFirstIpsi(:, a:a+29) = fftIpsiA(:, :, j);
-            dataLastIpsi(:, a:a+29) = fftIpsiC(:, :, end-5+j);
-            a = a + 30;
-        end
-        for j = 1:5
-            % Fill MOVE 5 sessions (FIRST + LASTT), ipsI
-            dataFirstIpsi(:, a:a+29, :) = fftIpsiB(:, :, j);
-            dataLastIpsi(:, a:a+29) = fftIpsiD(:, :, end-5+j);
-            a = a + 30;
-        end
-    end
+    
+    % DO NOT UNCOMMENT SECTION! CANNOT APPLY FFT AND GABOR FUNCTION TOGETHER, MUST BE ONE OR OTHER!
+    % %fill array w FFT data
+    % a = 1;
+    % while (a<=300)
+    %    for j = 1:5
+    %        %Fill REST sessions (FIRST + LAST), ipsi
+    %        dataFirstIpsi(:, a:a+29) = fftIpsiA(:, :, j);
+    %        dataLastIpsi(:, a:a+29) = fftIpsiC(:, :, end-5+j);
+    %        a = a + 30;
+    %    end
+    %    for j = 1:5
+    %        % Fill MOVE 5 sessions (FIRST + LASTT), ipsI
+    %        dataFirstIpsi(:, a:a+29, :) = fftIpsiB(:, :, j);
+    %        dataLastIpsi(:, a:a+29) = fftIpsiD(:, :, end-5+j);
+    %        a = a + 30;
+    %    end
+    % end
     
     % Gabor wavelet function, ipsi (output is complex signal)
     [gabor_responseFirst_ipsi] = gabor_response_span(dataFirstIpsi, cf, span, Fs);
     [gabor_responseLast_ipsi] = gabor_response_span(dataLastIpsi, cf, span, Fs);
     %Power envolope, ipsi
-    alpha_power_envFirst_ipsi = squeeze(abs(gabor_responseFirst_ipsi).^2);
-    alpha_power_envLast_ipsi = squeeze(abs(gabor_responseLast_ipsi).^2);
+    power_envFirst_ipsi = squeeze(abs(gabor_responseFirst_ipsi).^2);
+    power_envLast_ipsi = squeeze(abs(gabor_responseLast_ipsi).^2);
     
     % Apply PCA
-    [coeffF_ipsi, scoreF_ipsi, latentF_ipsi, tsquaredF_ipsi, explainedF_ipsi] = pca(alpha_power_envFirst_ipsi);
-    [coeffL_ipsi, scoreL_ipsi, latentL_ipsi, tsquaredL_ipsi, explainedL_ipsi] = pca(alpha_power_envLast_ipsi);
+    [coeffF_ipsi, scoreF_ipsi, latentF_ipsi, tsquaredF_ipsi, explainedF_ipsi] = pca(power_envFirst_ipsi);
+    [coeffL_ipsi, scoreL_ipsi, latentL_ipsi, tsquaredL_ipsi, explainedL_ipsi] = pca(power_envLast_ipsi);
     
     % Find vars needed to explain 90% variance in each PCA function
     % FIRST 5 trials, ipsi
@@ -143,14 +149,14 @@ for i = 1:10
     distanceF_ipsi = norm(meanRestF_ipsi - meanMoveF_ipsi);
     distanceL_ipsi = norm(meanRestL_ipsi - meanMoveL_ipsi);
     % Store calc'd distance in centDist
-    centDist_alpha_temp_ipsi(1, i) = distanceF_ipsi; %FIRST 5 sessions = Row 1
-    centDist_alpha_temp_ipsi(2, i) = distanceL_ipsi; %LAST 5 sessions = Row 2
+    centDist_temp_ipsi(1, i) = distanceF_ipsi; %FIRST 5 sessions = Row 1
+    centDist_temp_ipsi(2, i) = distanceL_ipsi; %LAST 5 sessions = Row 2
     %%Calc change from FIRST to LAST 5 sessions
-    centDist_alpha_ipsi(i) = centDist_alpha_temp_ipsi(2, i) - centDist_alpha_temp_ipsi(1, i);
+    centDist_ipsi(i) = centDist_temp_ipsi(2, i) - centDist_temp_ipsi(1, i);
     
     % Plot change in ARAT against change in centroid
-    scatter(centDist_alpha_ipsi(i), ARATchange(i))
-    title('Avg change in ipsilat alpha band position v. ARAT change')
+    scatter(centDist_ipsi(i), ARATchange(i))
+    title('Avg change in ipsilat band position v. ARAT change')
     
 end
 hold off
@@ -158,8 +164,8 @@ hold off
 %% Step 2: contralesional electrode
 % Repeat above 100 lines for contralesional data
 % Preallocate outside loop to previde overriding w 0s
-centDist_alpha_temp_contra = zeros(size(200,20)); 
-centDist_alpha_contra = zeros(size(1, 10)); 
+centDist_temp_contra = zeros(size(200,20)); 
+centDist_contra = zeros(size(1, 10)); 
 
 figure()
 for i = 1:10
@@ -205,16 +211,16 @@ for i = 1:10
     [gabor_responseFirst_contra] = gabor_response_span(dataFirstContra, cf, span, Fs);
     [gabor_responseLast_contra] = gabor_response_span(dataLastContra, cf, span, Fs);
     % Power envelope, contra
-    alpha_power_envFirst_contra = squeeze(abs(gabor_responseFirst_contra).^2);
-    alpha_power_envLast_contra = squeeze(abs(gabor_responseLast_contra).^2);
+    power_envFirst_contra = squeeze(abs(gabor_responseFirst_contra).^2);
+    power_envLast_contra = squeeze(abs(gabor_responseLast_contra).^2);
     
     % PCA
     % ipsi data
-    [coeffF_ipsi, scoreF_ipsi, latentF_ipsi, tsquaredF_ipsi, explainedF_ipsi] = pca(alpha_power_envFirst_ipsi);
-    [coeffL_ipsi, scoreL_ipsi, latentL_ipsi, tsquaredL_ipsi, explainedL_ipsi] = pca(alpha_power_envLast_ipsi);
+    [coeffF_ipsi, scoreF_ipsi, latentF_ipsi, tsquaredF_ipsi, explainedF_ipsi] = pca(power_envFirst_ipsi);
+    [coeffL_ipsi, scoreL_ipsi, latentL_ipsi, tsquaredL_ipsi, explainedL_ipsi] = pca(power_envLast_ipsi);
     % contra data
-    [coeffF_contra, scoreF_contra, latentF_contra, tsquaredF_contra, explainedF_contra] = pca(alpha_power_envFirst_contra);
-    [coeffL_contra, scoreL_contra, latentL_contra, tsquaredL_contra, explainedL_contra] = pca(alpha_power_envLast_contra);
+    [coeffF_contra, scoreF_contra, latentF_contra, tsquaredF_contra, explainedF_contra] = pca(power_envFirst_contra);
+    [coeffL_contra, scoreL_contra, latentL_contra, tsquaredL_contra, explainedL_contra] = pca(power_envLast_contra);
     
     % Find vars needed to explain 90% variance in each PCA function
     % FIRST 5 trials, contra
@@ -269,13 +275,13 @@ for i = 1:10
     distanceF_contra = norm(meanRestF_contra - meanMoveF_contra);
     distanceL_contra = norm(meanRestL_contra - meanMoveL_contra);
     %%Store calc'd distance in centDist
-    centDist_alpha_temp_contra(1, i) = distanceF_contra; %FIRST 5 sessions = Row 1
-    centDist_alpha_temp_contra(2, i) = distanceL_contra; %LAST 5 sessions = Row 2
+    centDist_temp_contra(1, i) = distanceF_contra; %FIRST 5 sessions = Row 1
+    centDist_temp_contra(2, i) = distanceL_contra; %LAST 5 sessions = Row 2
     %%Calc change from FIRST to LAST 5 sessions
-    centDist_alpha_contra(i) = centDist_alpha_temp_contra(2, i) - centDist_alpha_temp_contra(1, i);
+    centDist_contra(i) = centDist_temp_contra(2, i) - centDist_temp_contra(1, i);
     
     %Plot change in ARAT against change in centroid
-    scatter(centDist_alpha_contra(i), ARATchange(i))
-    title('Avg change in contralat alpha band position v. ARAT change')
+    scatter(centDist_contra(i), ARATchange(i))
+    title('Avg change in contralat band position v. ARAT change')
 end
 hold off 
