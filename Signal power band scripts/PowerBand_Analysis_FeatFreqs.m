@@ -6,13 +6,7 @@
 %   5) Constrict to ALPHA BAND only
 %
 
-%% Step 1: PCAFunction, ipsilesional electrode
-clc
-% parameters
-Fs = 256; %sampling frequency
-T = 1/Fs; %sampling frequency
-L = 2000; %length of signal
-t = (0:L-1)*T; %time vector
+%% Step 1
 
 % Motor scores
 ARATchange = [12.5 0.5 8 6 2 6 1 7 13.5 5.5];
