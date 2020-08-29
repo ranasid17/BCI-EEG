@@ -30,3 +30,15 @@ MotorTask(emptyCell) = [];
 
 goodCell = ~emptyCell;
 ptID = find(goodCell);
+
+% Parameter definitions 
+Fs = 256; %sampling frequency
+T = 1/Fs; %sampling frequency
+L = 2000; %length of signal
+t = (0:L-1)*T; %time vector
+
+% Motor scores
+ARATchange = [12.5 0.5 8 6 2 6 1 7 13.5 5.5];
+% Define ipsi/contralesional electrodes
+ipsi = [2,1,2,2,2,1,1,1,2,1];
+contra = [1,2,1,1,1,2,2,2,1,2];
