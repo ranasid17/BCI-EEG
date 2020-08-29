@@ -1,9 +1,13 @@
 % Script overview:
-%   1) Merge 'createArrayForPCA', 'PCAFunction', 'centroidCalculation'
-%   2) Run PCA on early and late MR, MT data for Patients 1-10 
-%   3) Calculate average centroids from PCA results " " 
-%   4) Calculate change in avg centroid location " " 
-%   5) Constrict to ALPHA BAND only
+%   1) Find wavelet span from fwhm, fwhm from span using self-defined functions
+%   2) Enter for loop #1 (each loop == 1 pt) 
+%       a) Extract pt data into matrix, stratify by ipsi or contralesional recording, apply FFT(*)
+%       b) Extract Gabor wavelet using self-defined function, use this to calculate power envelope
+%   3) Calculate median laterality for early and late Rest and Task data for all Pts 
+%   5) Calculate change in median centroid location "                               " 
+
+% IMPORTANT: (CF, FWHM) are pt-dependent for feature frequencies. So instead of defining one for 
+%   entire run, script will iterate thru all 10 when processing each pt.
 
 % Define center frq and wavelet width
 cf = [15,16,19,11,11,9,15,11,11,17];
