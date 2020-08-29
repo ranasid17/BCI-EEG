@@ -1,5 +1,5 @@
-alpha_band_laterality walkthrough 
-Note: This walkthrough applies to all x_band_laterality scripts
+PowerRatio_Laterality.m walkthrough
+Note: This walkthrough applies to all FF script too
 
 Lines 14-31: 
  - Remove empty cells from Rest + Move data
