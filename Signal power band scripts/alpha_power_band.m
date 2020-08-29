@@ -84,8 +84,7 @@ for i = 1:10
     alpha_power_envFirst_ipsi = squeeze(abs(gabor_responseFirst_ipsi).^2);
     alpha_power_envLast_ipsi = squeeze(abs(gabor_responseLast_ipsi).^2);
     
-    % PCA
-    % ipsi data
+    % Apply PCA
     [coeffF_ipsi, scoreF_ipsi, latentF_ipsi, tsquaredF_ipsi, explainedF_ipsi] = pca(alpha_power_envFirst_ipsi);
     [coeffL_ipsi, scoreL_ipsi, latentL_ipsi, tsquaredL_ipsi, explainedL_ipsi] = pca(alpha_power_envLast_ipsi);
     
@@ -110,7 +109,6 @@ for i = 1:10
     end
     EL_ipsi(EL_ipsi == 0) = []; %delete extra 0s
   
-    % Plotting centroids, ipsi
     % Center graph axes
     ax = gca;
     ax.XAxisLocation = 'origin'; %move X AXIS location to origin
@@ -158,7 +156,7 @@ end
 hold off
 
 %% Step 2: contralesional electrode
-% REPEAT STEP 1 FOR LOOP FOR CONTRA DATA
+% Repeat above 100 lines for contralesional data
 % Preallocate outside loop to previde overriding w 0s
 centDist_alpha_temp_contra = zeros(size(200,20)); 
 centDist_alpha_contra = zeros(size(1, 10)); 
