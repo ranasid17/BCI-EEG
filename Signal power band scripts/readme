@@ -2,8 +2,8 @@
   (prepareForAnalysis.m)
   1) Clean data sets prior to running analysis and define necessary params. This MUST be run prior to PB_A.m or PB_FF_A.m. 
   (PowerBand_Analysis.m)
-  2) Apply stratify REST data into early and late (first five runs v. last five runs of overall therapy) then apply PCA and calculate mean centroids '
-  3) Repeat for TASK data 
-  4) Calculate change in mean centroid location for REST and TASK data for first and final five runs
+  2) Apply stratify REST, TASK data into early and late (first five runs v. last five runs of overall therapy) then apply PCA and calculate mean centroids. 
+  3) Calculate change in mean centroid location for REST and TASK data for first and final five runs. 
+  4) Plot results.
   
   Note: Must define (cf, fwhm) for each frequency band EXCEPT feature frequencies. Due to pt-dependent (cf, fwhm) FF has its own script. 
