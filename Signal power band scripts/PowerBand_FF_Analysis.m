@@ -1,10 +1,13 @@
 % Script overview:
-%   1) Merge 'createArrayForPCA', 'PCAFunction', 'centroidCalculation'
-%   2) Run PCA on early and late MR, MT data for Patients 1-10 
-%   3) Calculate average centroids from PCA results " " 
-%   4) Calculate change in avg centroid location " " 
-%   5) Constrict to ALPHA BAND only
-%
+%   1) Find wavelet span from fwhm, fwhm from span using self-defined functions
+%   2) Enter for loop #1 (each loop == 1 pt) 
+%       a) Extract pt data into matrix, stratify by ipsi or contralesional recording, apply FFT(*)
+%       b) Extract Gabor wavelet using self-defined function, use this to calculate power envelope
+%   3) Calculate median laterality for early and late Rest and Task data for all Pts 
+%   5) Calculate change in median centroid location "                               " 
+
+% IMPORTANT: (CF, FWHM) are pt-dependent for feature frequencies. So instead of defining one for 
+%   entire run, script will iterate thru all 10 when processing each pt.
 
 % Define center frq and wavelet width
 cf = [15,16,19,11,11,9,15,11,11,17];
@@ -36,10 +39,11 @@ for i = 1:10
     ipsiD = Cell1b(:, :, ipsi(i), runsToCount(6:10)); %"    " TASK "                          "
     
     %%remove singleton dim, change data order, FFT for IPSILATERAL HEMISPHERE
-    ipsiA = squeeze(ipsiA); ipsiA = permute(ipsiA,[2 1 3]); fftIpsiA = fft(ipsiA);
-    ipsiB = squeeze(ipsiB); ipsiB = permute(ipsiB, [2 1 3]); fftIpsiB = fft(ipsiB);
-    ipsiC = squeeze(ipsiC); ipsiC = permute(ipsiC, [2 1 3]); fftIpsiC = fft(ipsiC);
-    ipsiD = squeeze(ipsiD); ipsiD = permute(ipsiD, [2 1 3]); fftIpsiD = fft(ipsiD);
+    % DO NOT UNCOMMENT FFT SECTION! CANNOT APPLY FFT AND GABOR FUNCTION TOGETHER, MUST BE ONE OR OTHER!
+    ipsiA = squeeze(ipsiA); ipsiA = permute(ipsiA,[2 1 3]); %fftIpsiA = fft(ipsiA);
+    ipsiB = squeeze(ipsiB); ipsiB = permute(ipsiB, [2 1 3]); %fftIpsiB = fft(ipsiB);
+    ipsiC = squeeze(ipsiC); ipsiC = permute(ipsiC, [2 1 3]); %fftIpsiC = fft(ipsiC);
+    ipsiD = squeeze(ipsiD); ipsiD = permute(ipsiD, [2 1 3]); %fftIpsiD = fft(ipsiD);
     
     %%allocate memory
     dataFirstIpsi = zeros(2000, 300);
@@ -50,14 +54,14 @@ for i = 1:10
     while (a<=300)
         for j = 1:5
             %Fill REST sessions (FIRST + LAST), ipsi
-            dataFirstIpsi(:, a:a+29) = fftIpsiA(:, :, j);
-            dataLastIpsi(:, a:a+29) = fftIpsiC(:, :, end-5+j);
+            dataFirstIpsi(:, a:a+29) = ipsiA(:, :, j);
+            dataLastIpsi(:, a:a+29) = ipsiC(:, :, end-5+j);
             a = a + 30;
         end
         for j = 1:5
             % Fill MOVE 5 sessions (FIRST + LASTT), ipsI
-            dataFirstIpsi(:, a:a+29, :) = fftIpsiB(:, :, j);
-            dataLastIpsi(:, a:a+29) = fftIpsiD(:, :, end-5+j);
+            dataFirstIpsi(:, a:a+29, :) = ipsiB(:, :, j);
+            dataLastIpsi(:, a:a+29) = ipsiD(:, :, end-5+j);
             a = a + 30;
         end
     end
@@ -66,13 +70,13 @@ for i = 1:10
     [gabor_responseFirst_ipsi] = gabor_response_span(dataFirstIpsi, cf(i), span(i), Fs);
     [gabor_responseLast_ipsi] = gabor_response_span(dataLastIpsi, cf(i), span(i), Fs);
     %Power envolope, ipsi
-    alpha_power_envFirst_ipsi = squeeze(abs(gabor_responseFirst_ipsi).^2);
-    alpha_power_envLast_ipsi = squeeze(abs(gabor_responseLast_ipsi).^2);
+    power_envFirst_ipsi = squeeze(abs(gabor_responseFirst_ipsi).^2);
+    power_envLast_ipsi = squeeze(abs(gabor_responseLast_ipsi).^2);
     
     % PCA
     % ipsi data
-    [coeffF_ipsi, scoreF_ipsi, latentF_ipsi, tsquaredF_ipsi, explainedF_ipsi] = pca(alpha_power_envFirst_ipsi);
-    [coeffL_ipsi, scoreL_ipsi, latentL_ipsi, tsquaredL_ipsi, explainedL_ipsi] = pca(alpha_power_envLast_ipsi);
+    [coeffF_ipsi, scoreF_ipsi, latentF_ipsi, tsquaredF_ipsi, explainedF_ipsi] = pca(power_envFirst_ipsi);
+    [coeffL_ipsi, scoreL_ipsi, latentL_ipsi, tsquaredL_ipsi, explainedL_ipsi] = pca(power_envLast_ipsi);
     
     % Find vars needed to explain 90% variance in each PCA function
     % FIRST 5 trials, ipsi
@@ -133,11 +137,11 @@ for i = 1:10
     centDist_alpha_temp_ipsi(1, i) = distanceF_ipsi; %FIRST 5 sessions = Row 1
     centDist_alpha_temp_ipsi(2, i) = distanceL_ipsi; %LAST 5 sessions = Row 2
     %%Calc change from FIRST to LAST 5 sessions
-    centDist_ft_ipsi(i) = centDist_alpha_temp_ipsi(2, i) - centDist_alpha_temp_ipsi(1, i);
+    centDist_ft_ipsi(i) = centDist_temp_ipsi(2, i) - centDist_temp_ipsi(1, i);
     
     % Plot change in ARAT against change in centroid
     scatter(centDist_ft_ipsi(i), ARATchange(i))
-    title('Avg change in ipsilat alpha band position v. ARAT change')
+    title('Avg change in ipsilat ft frq band position v. ARAT change')
     
 end
 hold off
@@ -145,7 +149,7 @@ hold off
 %% Step 2: contralesional electrode
 % REPEAT STEP 1 FOR LOOP FOR CONTRA DATA
 % Preallocate outside loop to previde overriding w 0s
-centDist_alpha_temp_contra = zeros(size(200,20)); 
+centDist_temp_contra = zeros(size(200,20)); 
 centDist_ft_contra = zeros(size(1, 10)); 
 
 figure()
@@ -165,10 +169,11 @@ for i = 1:10
      contraD = Cell1a(:, :, contra(i), runsToCount(6:10)); %"    " TASK "                      "
     
     % remove singleton dim, change data order, FFT for CONTRALATERAL HEMISPHERE
-    contraA = squeeze(contraA); contraA = permute(contraA,[2 1 3]); fftContraA = fft(contraA);
-    contraB = squeeze(contraB); contraB = permute(contraB,[2 1 3]); fftContraB = fft(contraB);
-    contraC = squeeze(contraC); contraC = permute(contraC,[2 1 3]); fftContraC = fft(contraC);
-    contraD = squeeze(contraD); contraD = permute(contraD, [2 1 3]); fftContraD = fft(contraD);
+    % DO NOT UNCOMMENT FFT SECTION! CANNOT APPLY FFT AND GABOR FUNCTION TOGETHER, MUST BE ONE OR OTHER!
+    contraA = squeeze(contraA); contraA = permute(contraA,[2 1 3]); %fftContraA = fft(contraA);
+    contraB = squeeze(contraB); contraB = permute(contraB,[2 1 3]); %fftContraB = fft(contraB);
+    contraC = squeeze(contraC); contraC = permute(contraC,[2 1 3]); %fftContraC = fft(contraC);
+    contraD = squeeze(contraD); contraD = permute(contraD, [2 1 3]); %fftContraD = fft(contraD);
     %%allocate memory
     dataFirstContra = zeros(2000,300);
     dataLastContra = zeros(2000, 300);
@@ -177,14 +182,14 @@ for i = 1:10
     while (a<=300)
         for j = 1:5
             %Fill FIRST 5 sessions (REST + MOVE), contra
-            dataFirstContra(:, a:a+29) = fftContraA(:, :, j);
-            dataLastContra(:, a:a+29) = fftContraC(:, :, end-5+j);
+            dataFirstContra(:, a:a+29) = contraA(:, :, j);
+            dataLastContra(:, a:a+29) = contraC(:, :, end-5+j);
             a = a + 30;
         end
         for j = 1:5
             %Fill LAST 5 sessions (REST + MOVE), contra
-            dataFirstContra(:, a:a+29, :) = fftContraB(:, :, j);
-            dataLastContra(:, a:a+29) = fftContraD(:, :, end-5+j);
+            dataFirstContra(:, a:a+29, :) = contraB(:, :, j);
+            dataLastContra(:, a:a+29) = contraD(:, :, end-5+j);
             a = a + 30;
         end
     end
@@ -192,16 +197,16 @@ for i = 1:10
     [gabor_responseFirst_contra] = gabor_response_span(dataFirstContra, cf(i), span(i), Fs);
     [gabor_responseLast_contra] = gabor_response_span(dataLastContra, cf(i), span(i), Fs);
     % Power envelope, contra
-    alpha_power_envFirst_contra = squeeze(abs(gabor_responseFirst_contra).^2);
-    alpha_power_envLast_contra = squeeze(abs(gabor_responseLast_contra).^2);
+    power_envFirst_contra = squeeze(abs(gabor_responseFirst_contra).^2);
+    power_envLast_contra = squeeze(abs(gabor_responseLast_contra).^2);
     
     % PCA
     % ipsi data
-    [coeffF_ipsi, scoreF_ipsi, latentF_ipsi, tsquaredF_ipsi, explainedF_ipsi] = pca(alpha_power_envFirst_ipsi);
+    [coeffF_ipsi, scoreF_ipsi, latentF_ipsi, tsquaredF_ipsi, explainedF_ipsi] = pca(power_envFirst_ipsi);
     [coeffL_ipsi, scoreL_ipsi, latentL_ipsi, tsquaredL_ipsi, explainedL_ipsi] = pca(alpha_power_envLast_ipsi);
     % contra data
-    [coeffF_contra, scoreF_contra, latentF_contra, tsquaredF_contra, explainedF_contra] = pca(alpha_power_envFirst_contra);
-    [coeffL_contra, scoreL_contra, latentL_contra, tsquaredL_contra, explainedL_contra] = pca(alpha_power_envLast_contra);
+    [coeffF_contra, scoreF_contra, latentF_contra, tsquaredF_contra, explainedF_contra] = pca(power_envFirst_contra);
+    [coeffL_contra, scoreL_contra, latentL_contra, tsquaredL_contra, explainedL_contra] = pca(power_envLast_contra);
     
     % Find vars needed to explain 90% variance in each PCA function
     % FIRST 5 trials, contra
@@ -256,10 +261,10 @@ for i = 1:10
     distanceF_contra = norm(meanRestF_contra - meanMoveF_contra);
     distanceL_contra = norm(meanRestL_contra - meanMoveL_contra);
     %%Store calc'd distance in centDist
-    centDist_alpha_temp_contra(1, i) = distanceF_contra; %FIRST 5 sessions = Row 1
-    centDist_alpha_temp_contra(2, i) = distanceL_contra; %LAST 5 sessions = Row 2
+    centDist_temp_contra(1, i) = distanceF_contra; %FIRST 5 sessions = Row 1
+    centDist_temp_contra(2, i) = distanceL_contra; %LAST 5 sessions = Row 2
     %%Calc change from FIRST to LAST 5 sessions
-    centDist_ft_contra(i) = centDist_alpha_temp_contra(2, i) - centDist_alpha_temp_contra(1, i);
+    centDist_ft_contra(i) = centDist_temp_contra(2, i) - centDist_temp_contra(1, i);
     
     %Plot change in ARAT against change in centroid
     scatter(centDist_ft_contra(i), ARATchange(i))
