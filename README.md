@@ -8,4 +8,4 @@ Functional Goals:
 
 Notes: 
   1) Power Band Analysis calculates average change in signal laterality origin for ipsilateral AND contralateral hemispheres independently in PC space.
-  2) Signal Laterality Analysis uses ipsilateral:contralateral signal change across all trials to determine if there is an effect. 
+  2) Power Ratio Analysis uses ipsilateral:contralateral signal change across all trials to determine if there is an effect. 
