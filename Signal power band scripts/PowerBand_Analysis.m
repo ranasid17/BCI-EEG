@@ -44,32 +44,32 @@ for i = 1:10
     ipsiD = Cell1b(:, :, ipsi(i), runsToCount(6:10)); %"    " TASK "                          "
     
     %%remove singleton dim, change data order, FFT for IPSILATERAL HEMISPHERE
-    ipsiA = squeeze(ipsiA); ipsiA = permute(ipsiA,[2 1 3]); fftIpsiA = fft(ipsiA);
-    ipsiB = squeeze(ipsiB); ipsiB = permute(ipsiB, [2 1 3]); fftIpsiB = fft(ipsiB);
-    ipsiC = squeeze(ipsiC); ipsiC = permute(ipsiC, [2 1 3]); fftIpsiC = fft(ipsiC);
-    ipsiD = squeeze(ipsiD); ipsiD = permute(ipsiD, [2 1 3]); fftIpsiD = fft(ipsiD);
+    % DO NOT UNCOMMENT FFT SECTION! CANNOT APPLY FFT AND GABOR FUNCTION TOGETHER, MUST BE ONE OR OTHER!
+    ipsiA = squeeze(ipsiA); ipsiA = permute(ipsiA,[2 1 3]); %fftIpsiA = fft(ipsiA);
+    ipsiB = squeeze(ipsiB); ipsiB = permute(ipsiB, [2 1 3]); %fftIpsiB = fft(ipsiB);
+    ipsiC = squeeze(ipsiC); ipsiC = permute(ipsiC, [2 1 3]); %fftIpsiC = fft(ipsiC);
+    ipsiD = squeeze(ipsiD); ipsiD = permute(ipsiD, [2 1 3]); %fftIpsiD = fft(ipsiD);
     
     %%allocate memory
     dataFirstIpsi = zeros(2000, 300);
     dataLastIpsi = zeros(2000, 300);
     
-    % DO NOT UNCOMMENT SECTION! CANNOT APPLY FFT AND GABOR FUNCTION TOGETHER, MUST BE ONE OR OTHER!
-    % %fill array w FFT data
-    % a = 1;
-    % while (a<=300)
-    %    for j = 1:5
-    %        %Fill REST sessions (FIRST + LAST), ipsi
-    %        dataFirstIpsi(:, a:a+29) = fftIpsiA(:, :, j);
-    %        dataLastIpsi(:, a:a+29) = fftIpsiC(:, :, end-5+j);
-    %        a = a + 30;
-    %    end
-    %    for j = 1:5
-    %        % Fill MOVE 5 sessions (FIRST + LASTT), ipsI
-    %        dataFirstIpsi(:, a:a+29, :) = fftIpsiB(:, :, j);
-    %        dataLastIpsi(:, a:a+29) = fftIpsiD(:, :, end-5+j);
-    %        a = a + 30;
-    %    end
-    % end
+    % %fill arrays w first + last data
+     a = 1;
+     while (a<=300)
+        for j = 1:5
+            %Fill REST sessions (FIRST + LAST), ipsi
+            dataFirstIpsi(:, a:a+29) = ipsiA(:, :, j);
+            dataLastIpsi(:, a:a+29) = ipsiC(:, :, end-5+j);
+            a = a + 30;
+        end
+        for j = 1:5
+            % Fill MOVE 5 sessions (FIRST + LASTT), ipsI
+            dataFirstIpsi(:, a:a+29, :) = ipsiB(:, :, j);
+            dataLastIpsi(:, a:a+29) = ipsiD(:, :, end-5+j);
+            a = a + 30;
+        end
+     end
     
     % Gabor wavelet function, ipsi (output is complex signal)
     [gabor_responseFirst_ipsi] = gabor_response_span(dataFirstIpsi, cf, span, Fs);
@@ -172,26 +172,27 @@ for i = 1:10
      contraD = Cell1a(:, :, contra(i), runsToCount(6:10)); %"    " TASK "                      "
     
     % remove singleton dim, change data order, FFT for CONTRALATERAL HEMISPHERE
-    contraA = squeeze(contraA); contraA = permute(contraA,[2 1 3]); fftContraA = fft(contraA);
-    contraB = squeeze(contraB); contraB = permute(contraB,[2 1 3]); fftContraB = fft(contraB);
-    contraC = squeeze(contraC); contraC = permute(contraC,[2 1 3]); fftContraC = fft(contraC);
-    contraD = squeeze(contraD); contraD = permute(contraD, [2 1 3]); fftContraD = fft(contraD);
+    % DO NOT UNCOMMENT SECTION! CANNOT APPLY FFT AND GABOR FUNCTION TOGETHER, MUST BE ONE OR OTHER!
+    contraA = squeeze(contraA); contraA = permute(contraA,[2 1 3]); %fftContraA = fft(contraA);
+    contraB = squeeze(contraB); contraB = permute(contraB,[2 1 3]); %fftContraB = fft(contraB);
+    contraC = squeeze(contraC); contraC = permute(contraC,[2 1 3]); %fftContraC = fft(contraC);
+    contraD = squeeze(contraD); contraD = permute(contraD, [2 1 3]); %fftContraD = fft(contraD);
     %%allocate memory
     dataFirstContra = zeros(2000,300);
     dataLastContra = zeros(2000, 300);
-    % fill array w FFT data
+    % fill arrays w first + last session data
     a = 1;
     while (a<=300)
         for j = 1:5
             %Fill FIRST 5 sessions (REST + MOVE), contra
-            dataFirstContra(:, a:a+29) = fftContraA(:, :, j);
-            dataLastContra(:, a:a+29) = fftContraC(:, :, end-5+j);
+            dataFirstContra(:, a:a+29) = contraA(:, :, j);
+            dataLastContra(:, a:a+29) = contraC(:, :, end-5+j);
             a = a + 30;
         end
         for j = 1:5
             %Fill LAST 5 sessions (REST + MOVE), contra
-            dataFirstContra(:, a:a+29, :) = fftContraB(:, :, j);
-            dataLastContra(:, a:a+29) = fftContraD(:, :, end-5+j);
+            dataFirstContra(:, a:a+29, :) = contraB(:, :, j);
+            dataLastContra(:, a:a+29) = contraD(:, :, end-5+j);
             a = a + 30;
         end
     end
