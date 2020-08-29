@@ -1,51 +1,13 @@
-% %%Merge 'createArrayForPCA', 'PCAFunction', 'centroidCalculation'
-% %%Run same processes from above scripts on Patients 1-10 for 1st 5 trials
-% %%Constrict to ALPHA BAND only
-%
-% %%createArrayForPCA
-%clear all
-clc
-close all
-% %%load data
-% load('D:\Sid\Data\MotorRest.mat')
-% load('D:\Sid\Data\MotorTask.mat')
-
-
-%% Remove empty cells from REST data
-emptyCell = false(numel(FullRawRestMat),1);
-for i = 1:numel(FullRawRestMat)
-    if isempty(FullRawRestMat{i})
-        emptyCell(i) = true;
-    end
-end
-FullRawRestMat(emptyCell) = [];
-%%Remove empty cells from MOVE data
-emptyCell = false(numel(FullRawTaskMat),1);
-for i = 1:numel(FullRawTaskMat)
-    if isempty(FullRawTaskMat{i})
-        emptyCell(i) = true;
-    end
-end
-FullRawTaskMat(emptyCell) = [];
-goodCell = ~emptyCell;
-ptID = find(goodCell);
-
-%%
-clc
-% parameters
-Fs = 256; %sampling frequency
-T = 1/Fs; %sampling frequency
-L = 2000; %length of signal
-t = (0:L-1)*T; %time vector
-
-% Given by joey
-ARATchange = [12.5, 0.5, 8, 6, 2, 6, 1, 7, 13.5, 5.5];
-ipsi = [2,1,2,2,2,1,1,1,2,1];
-contra = [1,2,1,1,1,2,2,2,1,2];
+% Script overview:
+%   1) Merge 'createArrayForPCA', 'PCAFunction', 'centroidCalculation'
+%   2) Run PCA on early and late MR, MT data for Patients 1-10 
+%   3) Calculate average centroids from PCA results " " 
+%   4) Calculate change in avg centroid location " " 
+%   5) Constrict to ALPHA BAND only
 
 % Define center frq and wavelet width
-cf = 4;
-fwhm = 4;
+cf = [15,16,19,11,11,9,15,11,11,17];
+fwhm = 1;
 
 % Find wavelet span (in time domain)
 [span] = fwhm2span(cf, fwhm); %fwhm2span.m
@@ -75,10 +37,10 @@ for i = 1:10
     ipsiD = Cell1b(:, :, ipsi(i), runsToCount(6:10)); %"    " TASK "                          "
     
     %%remove singleton dim, change data order, FFT for IPSILATERAL HEMISPHERE
-    ipsiA = squeeze(ipsiA); ipsiA = permute(ipsiA,[2 1 3]); fftIpsiA = fft(ipsiA);
-    ipsiB = squeeze(ipsiB); ipsiB = permute(ipsiB, [2 1 3]); fftIpsiB = fft(ipsiB);
-    ipsiC = squeeze(ipsiC); ipsiC = permute(ipsiC, [2 1 3]); fftIpsiC = fft(ipsiC);
-    ipsiD = squeeze(ipsiD); ipsiD = permute(ipsiD, [2 1 3]); fftIpsiD = fft(ipsiD);
+    ipsiA = squeeze(ipsiA); ipsiA = permute(ipsiA,[2 1 3]); %fftIpsiA = fft(ipsiA);
+    ipsiB = squeeze(ipsiB); ipsiB = permute(ipsiB, [2 1 3]); %fftIpsiB = fft(ipsiB);
+    ipsiC = squeeze(ipsiC); ipsiC = permute(ipsiC, [2 1 3]); %fftIpsiC = fft(ipsiC);
+    ipsiD = squeeze(ipsiD); ipsiD = permute(ipsiD, [2 1 3]); %fftIpsiD = fft(ipsiD);
     
     %%allocate memory
     dataFirstIpsi = zeros(2000, 300);
@@ -104,20 +66,20 @@ for i = 1:10
     [gabor_responseFirst_ipsi] = gabor_response_span(dataFirstIpsi, cf, span, Fs);
     [gabor_responseLast_ipsi] = gabor_response_span(dataLastIpsi, cf, span, Fs);
     %Power envolope, ipsi
-    alpha_power_envFirst_ipsi = squeeze(abs(gabor_responseFirst_ipsi).^2);
-    alpha_power_envLast_ipsi = squeeze(abs(gabor_responseLast_ipsi).^2);
+    power_envFirst_ipsi = squeeze(abs(gabor_responseFirst_ipsi).^2);
+    power_envLast_ipsi = squeeze(abs(gabor_responseLast_ipsi).^2);
     
     %%Separate alpha power data into REST and MOVE (FIRST 5 sessions, ipsi)
-    REST_DataFirst_ipsi = alpha_power_envFirst_ipsi(:, 1:150);
-    MOVE_DataFirst_ipsi = alpha_power_envFirst_ipsi(:, 151:300);
+    REST_DataFirst_ipsi = power_envFirst_ipsi(:, 1:150);
+    MOVE_DataFirst_ipsi = power_envFirst_ipsi(:, 151:300);
     %%Calc median of each REST and MOVE COLUMN
     medianRestF_ipsi = median(REST_DataFirst_ipsi);
     medianMoveF_ipsi = median(MOVE_DataFirst_ipsi);
     
     %%REPEAT for LAST 5 sessions, ipsi
     %%Separate alpha power data into REST and MOVE (LAST 5)
-    restDataLast_ipsi = alpha_power_envLast_ipsi(:, 1:150);
-    moveDataLast_ipsi = alpha_power_envLast_ipsi(:, 151:300);
+    restDataLast_ipsi = power_envLast_ipsi(:, 1:150);
+    moveDataLast_ipsi = power_envLast_ipsi(:, 151:300);
     %Calc median of each REST and MOVE column
     medianRestL_ipsi = median(restDataLast_ipsi);
     medianMoveL_ipsi = median(moveDataLast_ipsi);
@@ -140,10 +102,11 @@ for i = 1:10
     contraD = Cell2a(:, :, contra(i), runsToCount(6:10)); %"    " TASK "                      "
     
     %%remove singleton dim, change data order, FFT for CONTRALATERAL HEMISPHERE
-    contraA = squeeze(contraA); contraA = permute(contraA,[2 1 3]); fftContraA = fft(contraA);
-    contraB = squeeze(contraB); contraB = permute(contraB,[2 1 3]); fftContraB = fft(contraB);
-    contraC = squeeze(contraC); contraC = permute(contraC,[2 1 3]); fftContraC = fft(contraC);
-    contraD = squeeze(contraD); contraD = permute(contraD, [2 1 3]); fftontraD = fft(contraD);
+    
+    contraA = squeeze(contraA); contraA = permute(contraA,[2 1 3]); %fftContraA = fft(contraA);
+    contraB = squeeze(contraB); contraB = permute(contraB,[2 1 3]); %fftContraB = fft(contraB);
+    contraC = squeeze(contraC); contraC = permute(contraC,[2 1 3]); %fftContraC = fft(contraC);
+    contraD = squeeze(contraD); contraD = permute(contraD, [2 1 3]); %fftontraD = fft(contraD);
     %%allocate memory
     dataFirstContra = zeros(2000,300);
     dataLastContra = zeros(2000, 300);
@@ -180,8 +143,8 @@ for i = 1:10
     
     %%REPEAT Lines 175-179 for LAST 5 sessions, contra
     %%Separate alpha power data into REST and MOVE (LAST 5)
-    REST_DataLast_contra = alpha_power_envLast_contra(:, 1:150);
-    MOVE_DataLast_contra = alpha_power_envLast_contra(:, 151:300);
+    REST_DataLast_contra = power_envLast_contra(:, 1:150);
+    MOVE_DataLast_contra = power_envLast_contra(:, 151:300);
     %Calc median of each REST and MOVE column
     medianRestL_contra = median(REST_DataLast_contra);
     medianMoveL_contra = median(MOVE_DataLast_contra);
