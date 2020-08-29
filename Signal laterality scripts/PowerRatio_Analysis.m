@@ -135,8 +135,8 @@ for i = 1:10
     [gabor_responseFirst_contra] = gabor_response_span(dataFirstContra, cf, span, Fs);
     [gabor_responseLast_contra] = gabor_response_span(dataLastContra, cf, span, Fs);
     %Power envelope, contra
-    alpha_power_envFirst_contra = squeeze(abs(gabor_responseFirst_contra).^2);
-    alpha_power_envLast_contra = squeeze(abs(gabor_responseLast_contra).^2);
+    power_envFirst_contra = squeeze(abs(gabor_responseFirst_contra).^2);
+    power_envLast_contra = squeeze(abs(gabor_responseLast_contra).^2);
     
  %%Separate First/Last alpha power data -> F_R, F_M, L_R, L_M     
     REST_DataFirst_contra = power_envFirst_contra(:, 1:150);
