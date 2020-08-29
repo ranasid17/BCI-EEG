@@ -1,4 +1,6 @@
-%% Step 1: createArrayForPCA
+%   Must run this script prior to PB_A.m or PB_FF_A.m 
+%   Goal: Pre-process Rest and Task data to remove empty cells
+
 clc
 close all
 
