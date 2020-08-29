@@ -6,14 +6,6 @@
 %   5) Constrict to ALPHA BAND only
 %
 
-%% Step 1
-
-% Motor scores
-ARATchange = [12.5 0.5 8 6 2 6 1 7 13.5 5.5];
-% Define ipsi/contralesional electrodes
-ipsi = [2,1,2,2,2,1,1,1,2,1];
-contra = [1,2,1,1,1,2,2,2,1,2];
-
 % Define center frq and wavelet width
 cf = [15,16,19,11,11,9,15,11,11,17];
 fwhm = 1;
