@@ -9,3 +9,4 @@ Functional Goals:
 Notes: 
   1) Power Band Analysis calculates average change in signal laterality origin for ipsilateral AND contralateral hemispheres independently in PC space.
   2) Power Ratio Analysis uses ipsilateral:contralateral signal change across all trials to determine if there is an effect. 
+  3) PBA and PRA are self contained and can be run independently of each other. Both require functions from the 'necessaryFunctions' folder however. 
