@@ -1,7 +1,7 @@
 # Goals: 
   1) PrepareForAnalysis.m: 
     ## Clean data sets prior to running analysis and define necessary params.
-    ## This must be run prior to PowerBand_Analysis.m or PowerBand_FeatureFrequency_Analysis.m. 
+    ## This must be run prior to PowerBand_Analysis.m or PowerBand_FF_Analysis.m. 
   2) PowerBand_Analysis.m
     ## Stratifies REST, TASK data into early and late (first five runs v. last five runs of overall therapy
     ## Applies PCA to EEG recordings then calculates mean centroids in PC space. 
@@ -9,4 +9,4 @@
     ## Plot results.
   
   Note: Must define (cf, fwhm) for each frequency band EXCEPT feature frequencies (which are pt specific) 
-  Due to pt-dependent (cf, fwhm) FF has its own script. 
+  Note: Feature frequencies (FF) are pt-dependent (cf, fwhm) therefore FF has its own script. 
